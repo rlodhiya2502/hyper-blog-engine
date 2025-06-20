@@ -1,0 +1,27 @@
+{
+  "name": "hyper-blog-engine",
+  "version": "0.0.1",
+  "description": "A high-performance, database-less blog engine driven by Markdown Files.",
+  "keywords": [
+    "blog",
+    "engine",
+    "database-less",
+    "markdown",
+    "high",
+    "performance"
+  ],
+  "license": "MIT",
+  "author": "Ravi Lodhiya",
+  "main": "src/build.js",
+  "scripts": {
+    "build": "node src/build.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "express": "^5.1.0",
+    "front-matter": "^4.0.2",
+    "fs-extra": "^11.3.0",
+    "marked": "^15.0.12"
+  }
+}

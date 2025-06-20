@@ -1,0 +1,287 @@
+/* --- CSS Variables and Global Styles --- */
+:root {
+    --bg-color: #1a202c;
+    --card-bg: #2d3748;
+    --text-color: #e2e8f0;
+    --heading-color: #ffffff;
+    --accent-color: #4299e1;
+    --border-color: #4a5568;
+    --font-family: 'Inter', sans-serif;
+    --container-width: 900px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+    color: var(--heading-color);
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* --- Skeleton Loading --- */
+.skeleton-loader {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.skeleton-card {
+    background: linear-gradient(90deg, var(--card-bg) 25%, #3a475a 50%, var(--card-bg) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    height: 300px;
+    border-radius: 8px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Hide content until it's ready */
+.content-wrapper.is-loading {
+    display: none;
+}
+
+/* --- Home Page Header & Search --- */
+.home-header {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.search-container {
+    position: relative;
+    max-width: 500px;
+    margin: 1.5rem auto 0;
+}
+
+#search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+#search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+#search-results a {
+    display: block;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#search-results a:last-child {
+    border-bottom: none;
+}
+
+#search-results a:hover {
+    background-color: var(--bg-color);
+    text-decoration: none;
+}
+
+/* --- Post Grid & Cards --- */
+.posts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+.post-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+    display: block;
+    /* To make the whole card clickable */
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+}
+
+.post-card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: #4a5568;
+    /* Placeholder color */
+}
+
+.post-card-content {
+    padding: 1.5rem;
+}
+
+.post-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+/* For infinite scroll, initially hide posts beyond the first few */
+.post-card.hidden {
+    display: none;
+}
+
+/* --- Single Post Page --- */
+.post-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.post-header h1 {
+    font-size: 2.5rem;
+}
+
+.post-meta {
+    font-size: 0.9rem;
+    color: #a0aec0;
+}
+
+.cover-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.post-content {
+    font-size: 1.1rem;
+}
+
+.post-content h2,
+.post-content h3 {
+    margin-top: 2rem;
+}
+
+.post-content p,
+.post-content ul,
+.post-content ol {
+    margin-bottom: 1rem;
+}
+
+.post-content ul,
+.post-content ol {
+    padding-left: 1.5rem;
+}
+
+.post-content blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #a0aec0;
+}
+
+.post-cta {
+    text-align: center;
+    margin: 3rem 0;
+}
+
+.cta-button {
+    background-color: var(--accent-color);
+    color: var(--heading-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.cta-button:hover {
+    background-color: #2b6cb0;
+    text-decoration: none;
+}
+
+.related-posts h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* --- Media Queries for Larger Screens --- */
+@media (min-width: 768px) {
+    .posts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .related-posts .posts-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.logo {
+    display: inline-block;
+    width: 150px;
+    height: auto;
+    margin-bottom: 1rem;
+}
+
+/* -- Make a sticky header for the home page -- */
+.home-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    z-index: 1000;
+    padding: 1.5rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/*-- Make a navigation bar for the home page --*/
+.navbar {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+}
