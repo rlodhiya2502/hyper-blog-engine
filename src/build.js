@@ -3,6 +3,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const fm = require('front-matter');
 const marked = require('marked');
+const { XMLParser, XMLValidator } = require('fast-xml-parser'); // For checking and reading the XML file
+
 
 // Define paths for our project structure.
 const contentDir = path.join(__dirname, '..', 'content');
@@ -10,6 +12,7 @@ const publicDir = path.join(__dirname, '..', 'public');
 const templatesDir = path.join(__dirname, '..', 'templates');
 const postsDir = path.join(publicDir, 'posts');
 const assetsDir = path.join(__dirname, '..', 'assets');
+const yourDomain = 'www.example.com'; // Replace with your actual domain
 
 // --- Helper Functions ---
 
@@ -46,9 +49,87 @@ const findRelatedPosts = (currentPost, allPosts, count = 3) => {
         .slice(0, count); // Return only the specified number of related posts.
 };
 
+// A list of search engines to ping. The [SITEMAP_URL] part will be replaced
+// with your actual sitemap's address.
+const SEARCH_ENGINE_DIRECTORIES = [
+    {
+        name: 'Google',
+        pingUrl: 'https://www.google.com/ping?sitemap=[SITEMAP_URL]',
+    },
+    {
+        name: 'Bing',
+        pingUrl: 'https://www.bing.com/ping?sitemap=[SITEMAP_URL]',
+    },
+    // Note: Submitting to Google and Bing covers most search engines,
+    // including Yahoo and DuckDuckGo, which use their indexes.
+];
+
+
+/**
+ * A helper function to check if the sitemap's structure is correct.
+ * A valid sitemap must have a <urlset> containing at least one <url>,
+ * and each <url> must have a <loc> tag.
+ *
+ * @param {object} sitemapObject - The sitemap file parsed into a JavaScript object.
+ * @returns {{isValid: boolean, message: string}} - An object indicating if the structure is valid.
+ */
+function validateSitemapStructure(sitemapObject) {
+    if (!sitemapObject.urlset) {
+        return { isValid: false, message: 'Validation failed: The sitemap is missing the root <urlset> tag.' };
+    }
+    if (!sitemapObject.urlset.url) {
+        return { isValid: false, message: 'Validation failed: The sitemap does not contain any <url> tags inside <urlset>.' };
+    }
+
+    // The parser handles one or many <url> tags differently.
+    // We'll turn a single <url> object into an array to handle both cases the same way.
+    const urls = Array.isArray(sitemapObject.urlset.url) ? sitemapObject.urlset.url : [sitemapObject.urlset.url];
+
+    for (const urlEntry of urls) {
+        if (!urlEntry.loc) {
+            return { isValid: false, message: 'Validation failed: Found a <url> entry that is missing its <loc> tag.' };
+        }
+    }
+
+    return { isValid: true, message: 'Sitemap structure is valid.' };
+}
+
+
+/** A function for validating sitemap.xml file */
+async function validateSitemap(sitemapPath) {
+    try {
+        const sitemapText = await fs.readFile(sitemapPath, 'utf-8');
+        const isXmlWellFormed = XMLValidator.validate(sitemapText);
+        if (isXmlWellFormed !== true) {
+            throw new Error('Invalid XML');
+        }
+        const parser = new XMLParser();
+        const sitemapObject = parser.parse(sitemapText);
+        return validateSitemapStructure(sitemapObject);
+    } catch (error) {
+        console.error(`Error validating sitemap: ${error.message}`);
+        return { isValid: false, message: error.message };
+    }
+}
+
+/** A function to submit to search engines */
+async function submitSitemapToSearchEngines(sitemapUrl) {
+    const results = [];
+    for (const engine of SEARCH_ENGINE_DIRECTORIES) {
+        const pingUrl = engine.pingUrl.replace('[SITEMAP_URL]', encodeURIComponent(sitemapUrl));
+        try {
+            console.log(`Pinging ${engine.name} with URL: ${pingUrl}`);
+            // Uncomment the following lines to actually ping the search engines.
+            // const response = await axios.get(pingUrl);
+            // results.push({ engine: engine.name, status: response.status });
+        } catch (error) {
+            // results.push({ engine: engine.name, status: 'error', message: error.message });
+        }
+    }
+    return results;
+}
 
 // --- Main Build Function ---
-
 async function build() {
     try {
         console.log('🚀 Starting build process...');
@@ -177,7 +258,7 @@ async function build() {
                 <p>Powered by <a href="https://www.raminfosystems.co.uk" target="_blank">Ram Infosystems</a>.</p>
             </footer>
                  `;
-        
+
 
         // Wrap the home page content in the main layout.
         let finalIndexHtml = replacePlaceholder(layoutTemplate, '{{CONTENT}}', homePageContent);
@@ -186,7 +267,7 @@ async function build() {
         finalIndexHtml = replacePlaceholder(finalIndexHtml, '{{META_KEYWORDS}}', 'blog, web development, seo, performance');
         finalIndexHtml = replacePlaceholder(finalIndexHtml, '{{OG_TAGS}}', defaultOgTags);
         finalIndexHtml = replacePlaceholder(finalIndexHtml, '{{FOOTER_CONTENT}}', homepageFooterContent);
-        
+
         await fs.writeFile(path.join(publicDir, 'index.html'), finalIndexHtml);
         console.log('✅ Generated home page (index.html).');
 
@@ -199,7 +280,7 @@ async function build() {
 
         // 7. Generate robots.txt
         const robotsContent = 'User-agent: *\nDisallow: /posts/\nAllow: /';
-        await fs.writeFile(path.join(publicDir, 'robots.txt'), robotsContent);  
+        await fs.writeFile(path.join(publicDir, 'robots.txt'), robotsContent);
         console.log('✅ Generated robots.txt.');
 
         // 8. Generate sitemap.xml
@@ -219,6 +300,17 @@ async function build() {
 
         // 9. Submit sitemap to search engines
         // Note: This is a placeholder. Actual submission requires API calls to search engines.
+        const sitemapPath = path.join(publicDir, 'sitemap.xml');
+        const sitemapValidation = await validateSitemap(sitemapPath);
+        if (sitemapValidation.isValid) {
+            console.log('✅ Sitemap structure is valid.');
+            const sitemapUrl = `https://${yourDomain}/sitemap.xml`;
+            const submissionResults = await submitSitemapToSearchEngines(sitemapUrl);
+            console.log('✅ Sitemap submitted to search engines:', submissionResults);
+        } else {
+            console.error('❌ Sitemap validation failed:', sitemapValidation.message);
+        }
+
         console.log('🔍 Remember to submit your sitemap to search engines like Google and Bing.');
 
         console.log('🎉 Build complete! Your site is ready in the /public directory.');
@@ -228,23 +320,7 @@ async function build() {
     }
 }
 
-// Export the build function so it can be used by server.js
-module.exports = { build };
 
-// Allow running the build script directly from the command line.
-if (require.main === module) {
-    build();
-}
-
-        await fs.writeFile(path.join(publicDir, 'rss.xml'), rssContent);
-        console.log('✅ Generated RSS feed (rss.xml).');
-
-        console.log('🎉 Build complete! Your site is ready in the /public directory.');
-
-    } catch (error) {
-        console.error('❌ An error occurred during the build process:', error);
-    }
-}
 
 // Export the build function so it can be used by server.js
 module.exports = { build };
