@@ -174,7 +174,7 @@ async function build() {
         const homepageFooterContent = `
             <footer class="home-footer">
                 <p>&copy; ${new Date().getFullYear()} Bykes UK. All rights reserved.</p>
-                <p>Powered by <a href="https://www.raminfosystems.co.uk" target="_blank">Raminfo Systems</a>.</p>
+                <p>Powered by <a href="https://www.raminfosystems.co.uk" target="_blank">Ram Infosystems</a>.</p>
             </footer>
                  `;
         
